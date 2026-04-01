@@ -1,9 +1,9 @@
 // =========================================================================
-// 🚀 [최종 독립형] 수익화 광고 모듈 (adcode_final.js) - 충돌 완벽 방지 & 5초 검증
+// 🚀 [최종 독립형] 수익화 광고 모듈 (adcode_final.js) - 5초 검증 & 쿠팡 문구 자동 삽입
 // =========================================================================
 
 (function() {
-    console.log("Ad Module FINAL Loaded (Isolated DOM & 5s Validation)");
+    console.log("Ad Module FINAL Loaded (Isolated DOM, 5s Validation, Auto Disclosure)");
 
     // 1. 광고 HTML 주입 (기존 찌꺼기와 겹치지 않는 완전 고유 ID 사용)
     var adHtml = `
@@ -30,13 +30,40 @@
     wrapper.innerHTML = adHtml;
     document.body.appendChild(wrapper);
 
+    // 💡 [추가됨] 2. 쿠팡 파트너스 대가성 문구 자동 삽입 (모든 페이지 하단)
+    function injectCoupangDisclosure() {
+        if (document.getElementById('cp-disclosure')) return; // 중복 생성 방지
+        
+        var cpDiv = document.createElement('div');
+        cpDiv.id = 'cp-disclosure';
+        // 이미지에 적힌 문구 그대로 반영 (영문은 색상을 약간 더 연하게 처리하여 디자인 최적화)
+        cpDiv.innerHTML = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.<br><span style='font-size:0.85em; color:#bdc3c7;'>This post is part of Coupang Partners' activities, and a certain amount of commission is provided accordingly.</span>";
+        // 디자인 스타일링: 화면 맨 밑에 튀지 않게 중앙 정렬
+        cpDiv.style.cssText = "width: 100%; max-width: 640px; margin: 30px auto 10px auto; text-align: center; font-size: 0.75rem; color: #95a5a6; line-height: 1.6; padding: 0 10px; word-break: keep-all;";
+        
+        // 게임 컨테이너 제일 밑에 붙임
+        var appWrapper = document.getElementById('app-wrapper');
+        if (appWrapper) {
+            appWrapper.appendChild(cpDiv);
+        } else {
+            document.body.appendChild(cpDiv);
+        }
+    }
+
+    // 문서가 준비되면 문구 삽입
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectCoupangDisclosure);
+    } else {
+        injectCoupangDisclosure();
+    }
+
     var safeGet = function(k) { try { return sessionStorage.getItem(k); } catch(e) { return null; } };
     var safeSet = function(k, v) { try { sessionStorage.setItem(k, v); } catch(e) {} };
     var uS = parseInt(safeGet('u_s'), 10) || 0;
     var uC = parseInt(safeGet('u_c'), 10) || 0;
     var missionInt = null, checkInt = null, affWin = null, cdI = null;
 
-    // 2. 핵심 함수 전역 등록
+    // 3. 핵심 함수 전역 등록
     window.performAdCheck = function(callback) {
         if (uC > 0) { uC--; safeSet('u_c', uC); callback(); return; }
         
@@ -101,7 +128,7 @@
         document.getElementById('ad2-cl-cd-btn').onclick = function(){ box.style.display='none'; };
     }
 
-    // 3. 5초 체류 검증 및 팝업 닫힘 감지 로직
+    // 4. 5초 체류 검증 및 팝업 닫힘 감지 로직
     function handleAff(type, cb, actNm) {
         var url = type === 'coupang' ? "https://link.coupang.com/a/ectYi7" : "https://s.click.aliexpress.com/e/_c4FSCKy9";
         var affWin = window.open(url, '_blank');
@@ -157,4 +184,24 @@
             }
         }, 500);
     }
+
+    // 5. 남은 횟수 / 타이머 버튼 실시간 업데이트
+    window.updateAdTimerUI = function(b1, b2) {
+        var tS = "";
+        if (uC > 0) tS = " (" + uC + ")";
+        else if (uS === 2) {
+            var l = safeGet('l_t_u');
+            if (l && (Date.now() - parseInt(l) < 180000)) {
+                var s = Math.ceil((parseInt(l) + 180000 - Date.now()) / 1000);
+                tS = " (" + Math.floor(s/60).toString().padStart(2,'0') + ":" + (s%60).toString().padStart(2,'0') + ")";
+            }
+        }
+        var btnTxt = (document.getElementById('hint-btn') !== null ? "💡 힌트" : "무르기") + tS;
+        if(b1) b1.innerText = btnTxt;
+        if(b2 && b2.id !== 're-btn') b2.innerText = btnTxt;
+    };
+    setInterval(function(){ 
+        window.updateAdTimerUI(document.getElementById('hint-btn') || document.getElementById('u-btn'), document.getElementById('go-u-btn')); 
+    }, 1000);
+
 })();
