@@ -1,34 +1,46 @@
 // =========================================================================
-// 🚀 [올인원 통합형] 수익화 광고 모듈 (adcode_v2.js) - 5초 체류 검증 완벽 적용
+// 🚀 [올인원 통합형] 수익화 광고 모듈 (adcode_v2.js) - 로딩 순서 무시 철벽방어 버전
 // =========================================================================
 
 (function() {
-    console.log("Ad Module Version 2.0 Loaded (5-second validation active)");
+    console.log("Ad Module Version 2.1 Loaded (Safe Injection Active)");
 
-    // 1. 광고 HTML 주입
-    var adHtml = `
-        <div id="reward-overlay" class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); border-radius: 12px; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 15px;">
-            <h2 id="reward-title" style="margin-top:0; margin-bottom:15px; color: #2c3e50;">스폰서 방문 후 보상받기</h2>
-            <p id="reward-desc" style="margin-bottom:20px; font-size: 0.95rem; color: #555; line-height: 1.6;"></p>
-            <button id="coupang-btn" style="background-color: #ea1d2c; color:white; border:none; padding:12px; border-radius:8px; width: 80%; font-size: 1.05rem; margin-bottom: 10px; cursor:pointer;">쿠팡 특가상품 보기</button>
-            <button id="ali-btn" style="background-color: #ff4747; color:white; border:none; padding:12px; border-radius:8px; width: 80%; font-size: 1.05rem; margin-bottom: 15px; display: none; cursor:pointer;">알리익스프레스 구경하기</button>
-            <button id="c-rev-btn" style="width: 80%; padding:10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer; color:#333;">취소</button>
-        </div>
-        <div id="cooldown-overlay" class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); border-radius: 12px; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 15px;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🤖</div>
-            <h2 style="margin-top:0; color: #e74c3c; margin-bottom: 10px;">스폰서 쿨다운</h2>
-            <p id="cd-desc" style="margin-bottom: 20px; max-width: 85%; color: #2c3e50;">잠시 후에 다시 이용할 수 있습니다.</p>
-            <div style="background: #2c3e50; color: #f1c40f; padding: 12px 25px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; font-family: monospace;">남은 시간: <span id="cd-time-txt">00:00</span></div>
-            <button id="cl-cd-btn" style="padding:10px 20px; cursor:pointer; border:1px solid #ddd; background:white; border-radius:8px; color:#333;">기다릴게</button>
-        </div>
-        <div id="mock-ad-overlay" class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center;">
-            <h2 style="color:white; margin-top:0;">데이터 분석 중</h2>
-            <p style="color:white;">잠시만 기다려주세요: <span id="m-ad-tm">2</span>초</p>
-        </div>
-    `;
-    
-    var gc = document.getElementById('game-container');
-    if (gc) { gc.insertAdjacentHTML('beforeend', adHtml); }
+    // 1. 광고 HTML 주입 (화면이 다 그려진 후 실행되는 안전 함수)
+    function injectAdHTML() {
+        if (document.getElementById('reward-overlay')) return; // 이미 있으면 중복 생성 방지
+        
+        var adHtml = `
+            <div id="reward-overlay" class="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 15px;">
+                <h2 id="reward-title" style="margin-top:0; margin-bottom:15px; color: #2c3e50;">스폰서 방문 후 보상받기</h2>
+                <p id="reward-desc" style="margin-bottom:20px; font-size: 0.95rem; color: #555; line-height: 1.6;"></p>
+                <button id="coupang-btn" style="background-color: #ea1d2c; color:white; border:none; padding:12px; border-radius:8px; width: 80%; max-width: 300px; font-size: 1.05rem; margin-bottom: 10px; cursor:pointer;">쿠팡 특가상품 보기</button>
+                <button id="ali-btn" style="background-color: #ff4747; color:white; border:none; padding:12px; border-radius:8px; width: 80%; max-width: 300px; font-size: 1.05rem; margin-bottom: 15px; display: none; cursor:pointer;">알리익스프레스 구경하기</button>
+                <button id="c-rev-btn" style="width: 80%; max-width: 300px; padding:10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer; color:#333;">취소</button>
+            </div>
+            <div id="cooldown-overlay" class="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🤖</div>
+                <h2 style="margin-top:0; color: #e74c3c; margin-bottom: 10px;">스폰서 쿨다운</h2>
+                <p id="cd-desc" style="margin-bottom: 20px; max-width: 85%; color: #2c3e50;">잠시 후에 다시 이용할 수 있습니다.</p>
+                <div style="background: #2c3e50; color: #f1c40f; padding: 12px 25px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; font-family: monospace;">남은 시간: <span id="cd-time-txt">00:00</span></div>
+                <button id="cl-cd-btn" style="padding:10px 20px; cursor:pointer; border:1px solid #ddd; background:white; border-radius:8px; color:#333;">기다릴게</button>
+            </div>
+            <div id="mock-ad-overlay" class="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; text-align: center;">
+                <h2 style="color:white; margin-top:0;">데이터 분석 중</h2>
+                <p style="color:white;">잠시만 기다려주세요: <span id="m-ad-tm">2</span>초</p>
+            </div>
+        `;
+        
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = adHtml;
+        document.body.appendChild(wrapper); // 게임 컨테이너를 찾지 않고 바디 끝에 무조건 강력하게 부착!
+    }
+
+    // 브라우저 로딩 상태를 체크해서 100% 안전하게 UI 삽입
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectAdHTML);
+    } else {
+        injectAdHTML();
+    }
 
     var safeGet = function(k) { try { return sessionStorage.getItem(k); } catch(e) { return null; } };
     var safeSet = function(k, v) { try { sessionStorage.setItem(k, v); } catch(e) {} };
@@ -36,13 +48,21 @@
     var uC = parseInt(safeGet('u_c'), 10) || 0;
     var missionInt = null, checkInt = null, affWin = null, cdI = null;
 
-    // 2. 핵심 함수 전역 등록
+    // 2. 핵심 함수 전역 등록 (버튼 누르면 실행됨)
     window.performAdCheck = function(callback) {
+        // UI가 로딩되지 않은 상태라면 임시로 막음 (에러 방지)
+        var ov = document.getElementById('reward-overlay');
+        if (!ov) {
+            console.warn("광고 UI 아직 로딩 안됨, 즉시 게임 기능 실행");
+            callback();
+            return;
+        }
+
         if (uC > 0) { uC--; safeSet('u_c', uC); callback(); return; }
         
         var isHint = document.getElementById('hint-btn') !== null;
         var actNm = isHint ? "힌트" : "무르기";
-        var ov = document.getElementById('reward-overlay'), tl = document.getElementById('reward-title'), ds = document.getElementById('reward-desc');
+        var tl = document.getElementById('reward-title'), ds = document.getElementById('reward-desc');
         var cBtn = document.getElementById('coupang-btn'), aBtn = document.getElementById('ali-btn'), rBtn = document.getElementById('c-rev-btn');
         
         if (uS === 1) {
@@ -97,6 +117,8 @@
             var s = Math.ceil(df / 1000);
             document.getElementById('cd-time-txt').innerText = Math.floor(s/60).toString().padStart(2,'0') + ":" + (s%60).toString().padStart(2,'0');
         }, 1000);
+        
+        document.getElementById('cl-cd-btn').onclick = function(){ box.style.display='none'; };
     }
 
     // 3. 5초 체류 검증 및 팝업 닫힘 감지 로직
@@ -122,21 +144,20 @@
         
         var startTime = Date.now(), c = 5;
         
-        // 1초마다 타이머 줄어듦
         missionInt = setInterval(function(){
             c--; 
             var mSecEl = document.getElementById('m-sec');
             if(mSecEl) mSecEl.innerText = c;
             
             if(c <= 0){
-                // 5초 무사히 버팀 -> 보상 지급
+                // 5초 무사 달성
                 clearInterval(missionInt); clearInterval(checkInt);
                 tl.innerText = "확인 완료";
                 ds.innerHTML = actNm + " 5회권이 충전되었습니다.";
                 rBtn.style.display = 'none';
                 
                 uS = (type === 'coupang') ? 1 : 2; 
-                uC = 4; // 방금 1회 썼으므로 4회 남음
+                uC = 4;
                 safeSet('u_s', uS); safeSet('u_c', uC);
                 
                 setTimeout(function() { 
@@ -146,11 +167,10 @@
             }
         }, 1000);
 
-        // 0.5초마다 창이 닫혔는지 감시 (핵심 검증 로직)
         checkInt = setInterval(function() {
             if (affWin && affWin.closed) {
                 var elapsed = Date.now() - startTime;
-                if (elapsed < 4800) { // 5초 전에 닫으면 실패
+                if (elapsed < 4800) { // 5초 이탈 시 실패
                     clearInterval(missionInt); clearInterval(checkInt);
                     tl.innerText = "미션 실패";
                     ds.innerHTML = "<span style='color:#e74c3c;'>스폰서 창을 너무 일찍 닫으셨습니다.</span><br>보상을 받으려면 창을 5초간 유지해야 합니다.";
@@ -163,6 +183,4 @@
             }
         }, 500);
     }
-
-    document.getElementById('cl-cd-btn').onclick = function(){ document.getElementById('cooldown-overlay').style.display='none'; };
 })();
